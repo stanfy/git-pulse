@@ -1,0 +1,14 @@
+@-webkit-keyframes 'pulse-start' {
+  from {
+    opacity: 0.6;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.pulse-start {
+  -webkit-animation: 'pulse-start' 1s;
+}
