@@ -156,5 +156,5 @@ var data = [
 ];
 
 $(function() {
-  stanfyPulse.start(sampleData, $('.pulse-container'), 15000);
+  stanfyPulse.start(sampleData, $('.pulse-container'), 30000);
 })
