@@ -2,7 +2,9 @@ var stanfyPulse = new function() {
 
   var log;
   var elements;
+  var timing;
   var avatarsReady = 0, avatarsCount = 0;
+  var totalDuration = 30000; // 30 sec.
 
   var requestAnimFrame = (function(){
     return  window.requestAnimationFrame
@@ -88,6 +90,10 @@ var stanfyPulse = new function() {
   }
 
   function pulse(container, id) {
+    if (elements[id].canvas.parent().length) {
+      // Previous animation is not finished. We skip it in this case :(.
+      return;
+    }
     lastCanvas = elements[id].canvas.appendTo(container);
     pulseAnimation(id, 2000);
   }
@@ -95,17 +101,29 @@ var stanfyPulse = new function() {
   function onAvatarsReady(container) {
     var index = 0;
     _(log).each(function(it) {
-      setTimeout(function() { pulse(container, it.id); }, index++ * 1000);
+      setTimeout(function() { pulse(container, it.id); }, timing[index++] * totalDuration);
     });
   }
 
   return {
-    start : function(data, container) {
+    start : function(data, container, animationDuration) {
       log = data;
       avatarsReady = 0;
       avatarsCount = 0;
+      if (animationDuration) {
+        totalDuration = animationDuration;
+      }
 
-      elements = _(data).reduce(function(result, it) {
+      // We assume that data array is chnorologically sorted.
+      var d = _(data);
+      var firstDate = Date.parse(d.first().ts);
+      var duration = Date.parse(d.last().ts) - firstDate;
+
+      timing = d.map(function(it) {
+        return (Date.parse(it.ts) - firstDate) / duration;
+      });
+
+      elements = d.reduce(function(result, it) {
         if (!result[it.id]) {
           avatarsCount++;
           result[it.id] = {
@@ -130,11 +148,13 @@ var stanfyPulse = new function() {
 };
 
 var data = [
-  {id: md5('rmazur@stanfy.com.ua'), ts: '2015-01-15-12-00-00'},
-  {id: md5('avoitova@stanfy.com.ua'), ts: '2015-01-15-13-00-00'},
-  {id: md5('ptaykalo@stanfy.com.ua'), ts: '2015-01-15-14-00-00'}
+  {id: md5('rmazur@stanfy.com.ua'), ts: '2015-01-15T12:00:00Z'},
+  {id: md5('ptaykalo@stanfy.com.ua'), ts: '2015-01-15T12:15:00Z'},
+  {id: md5('avoitova@stanfy.com.ua'), ts: '2015-01-15T13:00:00Z'},
+  {id: md5('ptaykalo@stanfy.com.ua'), ts: '2015-01-15T14:00:00Z'},
+  {id: md5('avoitova@stanfy.com.ua'), ts: '2015-01-15T14:30:00Z'}
 ];
 
 $(function() {
-  stanfyPulse.start(data, $('.pulse-container'));
+  stanfyPulse.start(sampleData, $('.pulse-container'), 15000);
 })
